@@ -21,9 +21,11 @@ import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import kotlin.collections.HashMap
+import kotlin.math.*
 
 class ArCoreFaceView(activity:Activity,context: Context, messenger: BinaryMessenger, id: Int, debug: Boolean) : BaseArCoreView(activity, context, messenger, id, debug) {
 
+    private val methodChannel2: MethodChannel = MethodChannel(messenger, "arcore_flutter_plugin_$id")
     private val TAG: String = ArCoreFaceView::class.java.name
     private var faceRegionsRenderable: ModelRenderable? = null
     private var faceMeshTexture: Texture? = null
@@ -34,9 +36,9 @@ class ArCoreFaceView(activity:Activity,context: Context, messenger: BinaryMessen
         faceSceneUpdateListener = Scene.OnUpdateListener { frameTime ->
             run {
                 //                if (faceRegionsRenderable == null || faceMeshTexture == null) {
-                if (faceMeshTexture == null) {
-                    return@OnUpdateListener
-                }
+                // if (faceMeshTexture == null) {
+                //     return@OnUpdateListener
+                // }
                 val faceList = arSceneView?.session?.getAllTrackables(AugmentedFace::class.java)
 
                 faceList?.let {
@@ -67,6 +69,17 @@ class ArCoreFaceView(activity:Activity,context: Context, messenger: BinaryMessen
                             iter.remove()
                         }
                     }
+
+                    al list = faceNodeMap.toList().map { it.first }
+                    if (list.size > 0) {
+                        val dest = FloatArray(16)
+                        list[0].getCenterPose().toMatrix(dest, 0);
+                        val doubleArray = DoubleArray(dest.size)
+                        for ((i, a) in dest.withIndex()) {
+                            doubleArray[i] = a.toDouble()
+                        }
+                        methodChannel2.invokeMethod("onGetFacesNodes", doubleArray)
+                    }
                 }
             }
         }
@@ -84,6 +97,12 @@ class ArCoreFaceView(activity:Activity,context: Context, messenger: BinaryMessen
                     val textureBytes = map["textureBytes"] as ByteArray
                     val skin3DModelFilename = map["skin3DModelFilename"] as? String
                     loadMesh(textureBytes, skin3DModelFilename)
+                }
+                "getFOV" -> {
+                    val dest = FloatArray(16)
+                    arSceneView?.arFrame?.camera?.getProjectionMatrix(dest, 0, 0.0001f, 2.0f)
+                    val res = 2 * atan(1/dest[5]) * 180/PI;
+                    result.success(res)
                 }
                 "dispose" -> {
                     debugLog( " updateMaterials")

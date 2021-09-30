@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 
 import '../arcore_flutter_plugin.dart';
 
+typedef FacesEventHandler = void Function(String transform);
+
 class ArCoreFaceController {
   ArCoreFaceController(
       {int id, this.enableAugmentedFaces, this.debug = false}) {
@@ -17,6 +19,8 @@ class ArCoreFaceController {
   final bool debug;
   MethodChannel _channel;
   StringResultHandler onError;
+
+  FacesEventHandler onGetFacesNodes;
 
   init() async {
     try {
@@ -38,6 +42,10 @@ class ArCoreFaceController {
           onError(call.arguments);
         }
         break;
+      case 'onGetFacesNodes':
+        var matrixString = call.arguments.toString();
+        onGetFacesNodes(matrixString);
+        break;
       default:
         if (debug) {
           print('Unknown method ${call.method}');
@@ -53,6 +61,10 @@ class ArCoreFaceController {
       'textureBytes': textureBytes,
       'skin3DModelFilename': skin3DModelFilename
     });
+  }
+
+  Future<dynamic> getFOV() {
+    return _channel.invokeMethod('getFOV');
   }
 
   void dispose() {
