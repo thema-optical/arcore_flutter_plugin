@@ -70,7 +70,7 @@ class ArCoreFaceView(activity:Activity,context: Context, messenger: BinaryMessen
                         }
                     }
 
-                    al list = faceNodeMap.toList().map { it.first }
+                    val list = faceNodeMap.toList().map { it.first }
                     if (list.size > 0) {
                         val dest = FloatArray(16)
                         list[0].getCenterPose().toMatrix(dest, 0);
