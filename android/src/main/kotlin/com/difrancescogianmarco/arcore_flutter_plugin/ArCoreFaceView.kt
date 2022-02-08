@@ -178,6 +178,14 @@ class ArCoreFaceView(activity:Activity,context: Context, messenger: BinaryMessen
                 "takeScreenshot" -> {
                     takeScreenshot(call, result);
                 }
+                "pause" -> {
+                    debugLog("pausing")
+                    onPause();
+                }
+                "resume" -> {
+                    debugLog("pausing")
+                    onResume();
+                }
                 "dispose" -> {
                     debugLog( " updateMaterials")
                     dispose()
